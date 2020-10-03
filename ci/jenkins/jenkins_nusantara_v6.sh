@@ -123,6 +123,17 @@ export TERM=xterm
     cya=$(tput setaf 6)             #  cyan
     txtrst=$(tput sgr0)             #  Reset
 
+if [ ! -f ~/.ssh/id_rsa ]; then
+    echo "creating ssh config for custom key path"
+    echo "Hostname github.com" >> ~/.ssh/config
+    echo "      IdentityFile ~/$(whoami)/id_rsa" >> ~/.ssh/config
+    echo "don't forget to add cust. ssh-key"
+    if [! -f ~/.ssh/known_hosts ]; then
+        ssh-keyscan frs.sourceforge.net >> ~/.ssh/known_hosts
+    fi
+fi
+echo "ssh config exist, skipping.."
+
 if [ "$re_sync" = "yes" ]; then
     rm -rf .repo/local_manifest*
     repo init -u $MANIFEST  -b $BRANCH_MANIFEST
