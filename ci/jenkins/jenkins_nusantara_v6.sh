@@ -159,18 +159,6 @@ if [ "$use_ccache" = "clean" ]; then
 	echo -e ${grn}"CCACHE Cleared"${txtrst};
 fi
 
-if [ "$make_clean" = "yes" ]; then
-	make clean # && make clobber
-	wait
-	echo -e ${cya}"OUT dir from your repo deleted"${txtrst};
-fi
-
-if [ "$make_clean" = "installclean" ]; then
-	make installclean
-	wait
-	echo -e ${cya}"Images deleted from OUT dir"${txtrst};
-fi
-
 function sendInfo() {
 	curl -s -X POST https://api.telegram.org/bot$BOT_API_KEY/sendMessage -d chat_id=$CHAT_ID -d "parse_mode=HTML" -d text="$(
 		for POST in "${@}"; do
@@ -257,6 +245,19 @@ export KBUILD_BUILD_USER=jenkins-$ROM_NAME-project
 export KBUILD_BUILD_HOST=ci
 export JAVA_TOOL_OPTIONS=-Xmx2g
 source build/envsetup.sh
+
+if [ "$make_clean" = "yes" ]; then
+	make clean # && make clobber
+	wait
+	echo -e ${cya}"OUT dir from your repo deleted"${txtrst};
+fi
+
+if [ "$make_clean" = "installclean" ]; then
+	make installclean
+	wait
+	echo -e ${cya}"Images deleted from OUT dir"${txtrst};
+fi
+
 lunch "$lunch_command"_"$device_codename"-"$build_type"
 startTele
 mkfifo reading
