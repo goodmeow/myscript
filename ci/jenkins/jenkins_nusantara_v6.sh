@@ -199,7 +199,8 @@ function startTele() {
 		"<b>Device        :</b> <code>${DEVICE}</code>" \
 		"<b>Command       :</b> <code>$target_command</code>" \
 		"<b>Upload to SF  :</b> <code>$upload_to_sf</code>" \
-		"<b>Started at</b>:<code>$(uname -a)</code>" \
+		"<b>Started at    :</b> <code> $(uname -a)</code>" \
+		"<b>Instance UpT. :</b> <code>$(uptime -p)</code>" \
 		"<b>====== Starting Build ROM ======</b>"
 }
 
