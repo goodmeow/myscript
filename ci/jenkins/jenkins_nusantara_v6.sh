@@ -50,6 +50,7 @@
 # jobs is not set (nproc)
 # upload_to_sf is not set (yes/test)
 # path_ccache is not set 
+javamemory=-Xmx2g 
 size_ccache=50G
 
 CDIR=$PWD
@@ -107,7 +108,11 @@ if [ "$ROMBUILD" = "microg" ]; then
 fi
 
 if [ "$ROMBUILD" = "test" ]; then
-    export NAD_BUILD_TYPE := BETA
+    export NAD_BUILD_TYPE=BETA
+fi
+
+if [ "$ROMBUILD" = "gms" ]; then
+    export USE_GMS=true
 fi
 
 #####################################
@@ -243,7 +248,7 @@ BUILDLOG="$CDIR/out/${ROM_NAME}-${DEVICE}-${DATELOG}.log"
 # time to build bro
 export KBUILD_BUILD_USER=jenkins-$ROM_NAME-project
 export KBUILD_BUILD_HOST=ci
-export JAVA_TOOL_OPTIONS=-Xmx2g
+export JAVA_TOOL_OPTIONS=$javamemory #-Xmx2g
 source build/envsetup.sh
 
 if [ "$make_clean" = "yes" ]; then
@@ -299,6 +304,7 @@ fi
 
 unset USE_GAPPS
 unset USE_MICROG
+unset USE_GMS
 unset NAD_BUILD_TYPE
 
 exit 0
