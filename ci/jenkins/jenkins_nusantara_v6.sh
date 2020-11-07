@@ -49,7 +49,7 @@
 # target_command is not set (bacon)
 # jobs is not set (nproc)
 # upload_to_sf is not set (yes/test)
-# path_ccache is not set 
+path_ccache=$PWD/.ccache
 javamemory=-Xmx2g 
 size_ccache=50G
 
@@ -107,10 +107,6 @@ if [ "$ROMBUILD" = "microg" ]; then
     export USE_MICROG=true
 fi
 
-if [ "$ROMBUILD" = "test" ]; then
-    export NAD_BUILD_TYPE=BETA
-fi
-
 if [ "$ROMBUILD" = "gms" ]; then
     export USE_GMS=true
 fi
@@ -136,14 +132,20 @@ if [ ! -f ~/.ssh/id_rsa ]; then
     if [! -f ~/.ssh/known_hosts ]; then
         ssh-keyscan frs.sourceforge.net >> ~/.ssh/known_hosts
     fi
+    if [ ! -f ~/.ssh/config ]; then
+         echo "creating ssh config for port 22:2"
+	 echo "Host *" >> ~/.ssh/config
+	 echo "		IdentitiesOnly=yes" >> ~/.ssh/config
+	 echo "ssh config for port 22:2, done"
+    fi
 fi
 echo "ssh config exist, skipping.."
 
 if [ "$re_sync" = "yes" ]; then
-    rm -rf .repo/local_manifest*
+    rm -rf .repo/local_manifest* hardware/qcom*
     repo init -u $MANIFEST  -b $BRANCH_MANIFEST
     repo sync -c -j$(nproc) --force-sync --no-clone-bundle --no-tags
-    git clone git@github.com:Nusantara-ROM/android_external_motorola_faceunlock.git external/motorola/faceunlock
+    #git clone git@github.com:Nusantara-ROM/android_external_motorola_faceunlock.git external/motorola/faceunlock
 fi
 
 if [ "$use_ccache" = "yes" ]; then
@@ -193,14 +195,14 @@ function timeEnd() {
 
 function startTele() {
 	    sendInfo \
-	    "<b>====== Starting Build ROM ======</b>" \
+	        "<b>====== Starting Build ROM ======</b>" \
 		"<b>ROM Name      :</b> <code>${ROM_NAME}</code>" \
 		"<b>Branch        :</b> <code>${BRANCH_MANIFEST}</code>" \
 		"<b>Device        :</b> <code>${DEVICE}</code>" \
-		"<b>Command       :</b> <code>$target_command</code>" \
-		"<b>Upload to SF  :</b> <code>$upload_to_sf</code>" \
+		"<b>Command       :</b> <code>${target_command}</code>" \
+		"<b>Upload to SF  :</b> <code>${upload_to_sf}</code>" \
 		"<b>Started at    :</b> <code> $(uname -a)</code>" \
-		"<b>Instance UpT. :</b> <code>$(uptime -p)</code>" \
+		"<b>Instance Uptime :</b> <code> $(uptime -p)</code>" \
 		"<b>====== Starting Build ROM ======</b>"
 }
 
@@ -253,13 +255,13 @@ export JAVA_TOOL_OPTIONS=$javamemory #-Xmx2g
 source build/envsetup.sh
 
 if [ "$make_clean" = "yes" ]; then
-	make clean # && make clobber
+	make clobber
 	wait
 	echo -e ${cya}"OUT dir from your repo deleted"${txtrst};
 fi
 
 if [ "$make_clean" = "installclean" ]; then
-	make installclean
+	make installclean && make clean && make deviceclean
 	wait
 	echo -e ${cya}"Images deleted from OUT dir"${txtrst};
 fi
@@ -268,7 +270,7 @@ lunch "$lunch_command"_"$device_codename"-"$build_type"
 startTele
 mkfifo reading
 tee "${BUILDLOG}" < reading &
-mka "$target_command" -j"$jobs" > reading
+mka "${target_command}" -j$(nproc) > reading
 
 # Record exit code after build
 retVal=$?
@@ -290,17 +292,15 @@ else
 fi
 
 if [ "$upload_to_sf" = "yes" ]; then
-    sshpass -p '$SF_PASS' scp "$FILEPATH" $SF_USER@frs.sourceforge.net:/home/frs/project/$SF_PROJECT/$DEVICE/
-    gupload "$FILEPATH"
+    sshpass -p '${SF_PASS}' scp ${FILEPATH} ${SF_USER}@frs.sourceforge.net:/home/frs/project/${SF_PROJECT}/${DEVICE}/
     sendInfo \
-    "Uploaded to : https://sourceforge.net/projects/$SF_PROJECT/files/$DEVICE/$FILENAME.zip/download "
+    "Uploaded to : https://sourceforge.net/projects/${SF_PROJECT}/files/${DEVICE}/${FILENAME}.zip/download "
 fi
 
 if [ "$upload_to_sf" = "test" ]; then
-    sshpass -p '$SF_PASS' scp "$FILEPATH" $SF_USER@frs.sourceforge.net:/home/frs/project/$SF_PROJECT_2/test/nusantara
-    gupload "$FILEPATH"
+    sshpass -p '${SF_PASS}' scp {$FILEPATH} ${SF_USER}@frs.sourceforge.net:/home/frs/project/${SF_PROJECT_2}/test/nusantara
     sendInfo \
-    "Uploaded to : https://sourceforge.net/projects/$SF_PROJECT_TEST/files/test/nusantara/$FILENAME.zip/download "
+    "Uploaded to : https://sourceforge.net/projects/${SF_PROJECT_TEST}/files/test/nusantara/${FILENAME}.zip/download "
 fi
 
 unset USE_GAPPS
