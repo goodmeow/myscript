@@ -291,14 +291,14 @@ else
     exit 0
 fi
 
-if [ "$upload_to_sf" = "yes" ]; then
+if [ "$upload_to_sf" = "release" ]; then
     sshpass -p '${SF_PASS}' scp ${FILEPATH} ${SF_USER}@frs.sourceforge.net:/home/frs/project/${SF_PROJECT}/${DEVICE}/
     sendInfo \
     "Uploaded to : https://sourceforge.net/projects/${SF_PROJECT}/files/${DEVICE}/${FILENAME}.zip/download "
 fi
 
 if [ "$upload_to_sf" = "test" ]; then
-    sshpass -p '${SF_PASS}' scp {$FILEPATH} ${SF_USER}@frs.sourceforge.net:/home/frs/project/${SF_PROJECT_2}/test/nusantara
+    sshpass -p '${SF_PASS}' scp ${FILEPATH} ${SF_USER}@frs.sourceforge.net:/home/frs/project/${SF_PROJECT_2}/test/nusantara
     sendInfo \
     "Uploaded to : https://sourceforge.net/projects/${SF_PROJECT_TEST}/files/test/nusantara/${FILENAME}.zip/download "
 fi
