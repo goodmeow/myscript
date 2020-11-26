@@ -124,28 +124,22 @@ export TERM=xterm
     cya=$(tput setaf 6)             #  cyan
     txtrst=$(tput sgr0)             #  Reset
 
-if [ ! -f ~/.ssh/id_rsa ]; then
-    echo "creating ssh config for custom key path"
-    echo "Hostname github.com" >> ~/.ssh/config
-    echo "      IdentityFile ~/$(whoami)/id_rsa" >> ~/.ssh/config
-    echo "don't forget to add cust. ssh-key"
-    if [! -f ~/.ssh/known_hosts ]; then
-        ssh-keyscan frs.sourceforge.net >> ~/.ssh/known_hosts
-    fi
-    if [ ! -f ~/.ssh/config ]; then
-         echo "creating ssh config for port 22:2"
-	 echo "Host *" >> ~/.ssh/config
-	 echo "		IdentitiesOnly=yes" >> ~/.ssh/config
-	 echo "ssh config for port 22:2, done"
-    fi
+if [! -f ~/.ssh/known_hosts ]; then
+    ssh-keyscan frs.sourceforge.net >> ~/.ssh/known_hosts
+    #if [ ! -f ~/.ssh/config ]; then
+         #echo "creating ssh config for port 22:2"
+	 #echo "Host *" >> ~/.ssh/config
+	 #echo "		IdentitiesOnly=yes" >> ~/.ssh/config
+	 #echo "ssh config for port 22:2, done"
+    #fi
 fi
+
 echo "ssh config exist, skipping.."
 
 if [ "$re_sync" = "yes" ]; then
-    rm -rf .repo/local_manifest* hardware/qcom*
+    rm -rf .repo/local_manifest* hardware/qcom* frameworks/*
     repo init -u $MANIFEST  -b $BRANCH_MANIFEST
     repo sync -c -j$(nproc) --force-sync --no-clone-bundle --no-tags
-    #git clone git@github.com:Nusantara-ROM/android_external_motorola_faceunlock.git external/motorola/faceunlock
 fi
 
 if [ "$use_ccache" = "yes" ]; then
@@ -292,13 +286,15 @@ else
 fi
 
 if [ "$upload_to_sf" = "release" ]; then
-    sshpass -p '${SF_PASS}' scp ${FILEPATH} ${SF_USER}@frs.sourceforge.net:/home/frs/project/${SF_PROJECT}/${DEVICE}/
+    sshpass -p '${SF_PASS}' scp $(pwd)/${FILEPATH} ${SF_USER}@frs.sourceforge.net:/home/frs/project/${SF_PROJECT}/${DEVICE}/
+    gdrive upload -p 1x8muGhGJh-2dQzihrrHPCSNrkcYEk_YG ${FILEPATH}
     sendInfo \
     "Uploaded to : https://sourceforge.net/projects/${SF_PROJECT}/files/${DEVICE}/${FILENAME}.zip/download "
 fi
 
 if [ "$upload_to_sf" = "test" ]; then
-    sshpass -p '${SF_PASS}' scp ${FILEPATH} ${SF_USER}@frs.sourceforge.net:/home/frs/project/${SF_PROJECT_2}/test/nusantara
+    sshpass -p '${SF_PASS}' scp $(pwd)/${FILEPATH} ${SF_USER}@frs.sourceforge.net:/home/frs/project/${SF_PROJECT_2}/test/nusantara
+    gdrive upload -p 1x8muGhGJh-2dQzihrrHPCSNrkcYEk_YG ${FILEPATH}
     sendInfo \
     "Uploaded to : https://sourceforge.net/projects/${SF_PROJECT_TEST}/files/test/nusantara/${FILENAME}.zip/download "
 fi
