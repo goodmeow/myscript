@@ -129,6 +129,13 @@ export TERM=xterm
     cya=$(tput setaf 6)             #  cyan
     txtrst=$(tput sgr0)             #  Reset
 
+if [ ! -f ~/.ssh/config ]; then
+         echo "creating ssh config for port 22:2"
+	 echo "Host *" >> ~/.ssh/config
+	 echo "		IdentitiesOnly=yes" >> ~/.ssh/config
+	 echo "ssh config for port 22:2, done"
+fi
+
 if [ "$re_sync" = "yes" ]; then
     rm -rf .repo/local_manifest* hardware/qcom*
     repo init -u $MANIFEST  -b $BRANCH_MANIFEST
