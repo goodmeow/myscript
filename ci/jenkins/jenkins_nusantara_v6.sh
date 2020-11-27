@@ -50,8 +50,8 @@
 # jobs is not set (nproc)
 # upload_to_sf is not set (yes/test)
 path_ccache=$PWD/.ccache
-javamemory=-Xmx2g 
-size_ccache=50G
+javamemory=-Xmx8g 
+size_ccache=150G
 
 CDIR=$PWD
 OUT="${CDIR}/out/target/product/$device_codename"
@@ -68,7 +68,7 @@ SF_PASS=""
 
 # Telegram Function
 BOT_API_KEY=""
-CHAT_ID=""
+CHAT_ID="-"
 
 #####################################
 #           Variable Check          #
@@ -98,6 +98,11 @@ if [ "$SF_PASS" = "" ]; then
   exit 40
 fi
 
+if ! [ -x "$(command -v gdrive)" ]; then
+  echo -e "Error: gdrive is not installed." >&2
+  exit 40
+fi
+
 # Defining build variant
 if [ "$ROMBUILD" = "gapps" ]; then
     export USE_GAPPS=true
@@ -124,22 +129,11 @@ export TERM=xterm
     cya=$(tput setaf 6)             #  cyan
     txtrst=$(tput sgr0)             #  Reset
 
-if [! -f ~/.ssh/known_hosts ]; then
-    ssh-keyscan frs.sourceforge.net >> ~/.ssh/known_hosts
-    #if [ ! -f ~/.ssh/config ]; then
-         #echo "creating ssh config for port 22:2"
-	 #echo "Host *" >> ~/.ssh/config
-	 #echo "		IdentitiesOnly=yes" >> ~/.ssh/config
-	 #echo "ssh config for port 22:2, done"
-    #fi
-fi
-
-echo "ssh config exist, skipping.."
-
 if [ "$re_sync" = "yes" ]; then
-    rm -rf .repo/local_manifest* hardware/qcom* frameworks/*
+    rm -rf .repo/local_manifest* hardware/qcom*
     repo init -u $MANIFEST  -b $BRANCH_MANIFEST
     repo sync -c -j$(nproc) --force-sync --no-clone-bundle --no-tags
+    #git clone git@github.com:Nusantara-ROM/android_external_motorola_faceunlock.git external/motorola/faceunlock
 fi
 
 if [ "$use_ccache" = "yes" ]; then
@@ -285,24 +279,34 @@ else
     exit 0
 fi
 
+function gupload() {
+     FILENAME=$(cat $CDIR/out/var-file_name)
+     FILEPATH="$OUT/$FILENAME.zip"
+     gdrive upload -p 1x8muGhGJh-2dQzihrrHPCSNrkcYEk_YG ${FILEPATH} | tee gdrv
+     grep "Uploaded" gdrv | awk '{print $2}'
+}
+
 if [ "$upload_to_sf" = "release" ]; then
-    sshpass -p '${SF_PASS}' scp $(pwd)/${FILEPATH} ${SF_USER}@frs.sourceforge.net:/home/frs/project/${SF_PROJECT}/${DEVICE}/
-    gdrive upload -p 1x8muGhGJh-2dQzihrrHPCSNrkcYEk_YG ${FILEPATH}
+    sshpass -p '' scp ${FILEPATH} ${SF_USER}@frs.sourceforge.net:/home/frs/project/${SF_PROJECT}/${DEVICE}/
+    gupload
     sendInfo \
-    "Uploaded to : https://sourceforge.net/projects/${SF_PROJECT}/files/${DEVICE}/${FILENAME}.zip/download "
+    "Uploaded to : https://sourceforge.net/projects/${SF_PROJECT}/files/${DEVICE}/${FILENAME}.zip/download " \
+    "MirrorLink  : https://drive.google.com/open?id=${gupload}"
 fi
 
 if [ "$upload_to_sf" = "test" ]; then
-    sshpass -p '${SF_PASS}' scp $(pwd)/${FILEPATH} ${SF_USER}@frs.sourceforge.net:/home/frs/project/${SF_PROJECT_2}/test/nusantara
-    gdrive upload -p 1x8muGhGJh-2dQzihrrHPCSNrkcYEk_YG ${FILEPATH}
+    sshpass -p '' scp ${FILEPATH} ${SF_USER}@frs.sourceforge.net:/home/frs/project/${SF_PROJECT_2}/test/nusantara
+    gupload
     sendInfo \
-    "Uploaded to : https://sourceforge.net/projects/${SF_PROJECT_TEST}/files/test/nusantara/${FILENAME}.zip/download "
+    "Uploaded to : https://sourceforge.net/projects/${SF_PROJECT_TEST}/files/test/nusantara/${FILENAME}.zip/download " \
+    "MirrorLink  : https://drive.google.com/open?id=${gupload}"
 fi
 
 unset USE_GAPPS
 unset USE_MICROG
 unset USE_GMS
 unset NAD_BUILD_TYPE
+rm -f gdrv
 
 exit 0
 
