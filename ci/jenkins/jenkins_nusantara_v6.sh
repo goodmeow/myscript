@@ -290,23 +290,22 @@ function gupload() {
      FILENAME=$(cat $CDIR/out/var-file_name)
      FILEPATH="$OUT/$FILENAME.zip"
      gdrive upload -p 1x8muGhGJh-2dQzihrrHPCSNrkcYEk_YG ${FILEPATH} | tee gdrv
-     grep "Uploaded" gdrv | awk '{print $2}'
 }
 
 if [ "$upload_to_sf" = "release" ]; then
     sshpass -p '' scp ${FILEPATH} ${SF_USER}@frs.sourceforge.net:/home/frs/project/${SF_PROJECT}/${DEVICE}/
     gupload
     sendInfo \
-    "Uploaded to : https://sourceforge.net/projects/${SF_PROJECT}/files/${DEVICE}/${FILENAME}.zip/download " \
-    "MirrorLink  : https://drive.google.com/open?id=${gupload}"
+    "Uploaded to : https://sourceforge.net/projects/$SF_PROJECT/files/${DEVICE}/${FILENAME}.zip/download " \
+    "MirrorLink  : https://drive.google.com/open?id=$(grep "Uploaded" gdrv | awk '{print $2}')"
 fi
 
 if [ "$upload_to_sf" = "test" ]; then
     sshpass -p '' scp ${FILEPATH} ${SF_USER}@frs.sourceforge.net:/home/frs/project/${SF_PROJECT_2}/test/nusantara
     gupload
     sendInfo \
-    "Uploaded to : https://sourceforge.net/projects/${SF_PROJECT_TEST}/files/test/nusantara/${FILENAME}.zip/download " \
-    "MirrorLink  : https://drive.google.com/open?id=${gupload}"
+    "Uploaded to : https://sourceforge.net/projects/$SF_PROJECT_TEST/files/test/nusantara/${FILENAME}.zip/download " \
+    "MirrorLink  : https://drive.google.com/open?id=$(grep "Uploaded" gdrv | awk '{print $2}')"
 fi
 
 unset USE_GAPPS
