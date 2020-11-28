@@ -301,7 +301,7 @@ if [ "$upload_to_sf" = "release" ]; then
 fi
 
 if [ "$upload_to_sf" = "test" ]; then
-    sshpass -p '' scp ${FILEPATH} ${SF_USER}@frs.sourceforge.net:/home/frs/project/${SF_PROJECT_2}/test/nusantara
+    sshpass -p '' scp ${FILEPATH} ${SF_USER}@frs.sourceforge.net:/home/frs/project/${SF_PROJECT_TEST}/test/nusantara
     gupload
     sendInfo \
     "Uploaded to : https://sourceforge.net/projects/$SF_PROJECT_TEST/files/test/nusantara/${FILENAME}.zip/download " \
