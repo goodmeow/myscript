@@ -48,9 +48,9 @@
 # build_type is not set
 # target_command is not set (bacon)
 # jobs is not set (nproc)
-# upload_to_sf is not set (yes/test)
+# upload_to_sf is not set (yes/gdrive)
 path_ccache=$PWD/.ccache
-javamemory=-Xmx8g 
+javamemory=-Xmx16g 
 size_ccache=150G
 
 CDIR=$PWD
@@ -63,7 +63,6 @@ OTA="${OUT}/$ROM_NAME*.json"
 # NAD_FILE is not set
 SF_USER="goodmeow"
 SF_PROJECT="nusantaraproject"
-SF_PROJECT_TEST="goodmeow"
 SF_PASS=""
 
 # Telegram Function
@@ -106,14 +105,12 @@ fi
 # Defining build variant
 if [ "$ROMBUILD" = "gapps" ]; then
     export USE_GAPPS=true
+    export USE_MICROG=false
 fi
 
 if [ "$ROMBUILD" = "microg" ]; then
     export USE_MICROG=true
-fi
-
-if [ "$ROMBUILD" = "gms" ]; then
-    export USE_GMS=true
+    export USE_GAPPS=false
 fi
 
 #####################################
@@ -195,7 +192,7 @@ function startTele() {
 		"<b>Branch        :</b> <code>${BRANCH_MANIFEST}</code>" \
 		"<b>Device        :</b> <code>${DEVICE}</code>" \
 		"<b>Command       :</b> <code>${target_command}</code>" \
-		"<b>Upload to SF  :</b> <code>${upload_to_sf}</code>" \
+		"<b>Uploaded to   :</b> <code>${upload_to_sf}</code>" \
 		"<b>Started at    :</b> <code> $(uname -a)</code>" \
 		"<b>Instance Uptime :</b> <code> $(uptime -p)</code>" \
 		"<b>====== Starting Build ROM ======</b>"
@@ -300,17 +297,14 @@ if [ "$upload_to_sf" = "release" ]; then
     "MirrorLink  : https://drive.google.com/open?id=$(grep "Uploaded" gdrv | awk '{print $2}')"
 fi
 
-if [ "$upload_to_sf" = "test" ]; then
-    sshpass -p '' scp ${FILEPATH} ${SF_USER}@frs.sourceforge.net:/home/frs/project/${SF_PROJECT_TEST}/test/nusantara
+if [ "$upload_to_sf" = "gdrive" ]; then
     gupload
     sendInfo \
-    "Uploaded to : https://sourceforge.net/projects/$SF_PROJECT_TEST/files/test/nusantara/${FILENAME}.zip/download " \
     "MirrorLink  : https://drive.google.com/open?id=$(grep "Uploaded" gdrv | awk '{print $2}')"
 fi
 
 unset USE_GAPPS
 unset USE_MICROG
-unset USE_GMS
 unset NAD_BUILD_TYPE
 rm -f gdrv
 
