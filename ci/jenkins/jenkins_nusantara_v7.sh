@@ -37,16 +37,20 @@
 # bootimage - for compiling only kernel in ROM Repo
 # Settings, SystemUI for compiling particular APK
 
+# Var definition for this script put in vendor/aosp
+# $(info) $(shell echo $(aosp_VERSION) > $(OUT_DIR)/var-file_name)
+
 #################################
 #        Variable setup         #
 #################################
 
+# re_sync 
 # use_ccache is not set (yes|no|installclean)
 # make_clean is not set (yes|no|installclean)
 # lunch_command is not set (nad)
 # device_codename is not set
 # build_type is not set
-# target_command is not set (bacon)
+# target_command is not set (nad)
 # jobs is not set (nproc)
 # upload_to_sf is not set (yes/gdrive)
 path_ccache=$PWD/.ccache
@@ -60,7 +64,6 @@ DEVICE="$device_codename"
 MANIFEST="ssh://git@github.com/Nusantara-ROM/android"
 # BRANCH_MANIFEST is not set
 OTA="${OUT}/$ROM_NAME*.json"
-# NAD_FILE is not set
 SF_USER="goodmeow"
 SF_PROJECT="nusantaraproject"
 SF_PASS=""
@@ -81,24 +84,24 @@ if [ "$CHAT_ID" = "" ]; then
   exit 20
 fi
 if [ "$SF_USER" = "" ]; then
-  echo -e "$SF_USER not set, please setup first"
+  echo -e "SF_USER not set, please setup first"
   exit 40
 fi
 if [ "$SF_PROJECT" = "" ]; then
-  echo -e "$SF_PROJECT not set, please setup first"
+  echo -e "SF_PROJECT not set, please setup first"
   exit 40
 fi
-if [ "$SF_PROJECT_TEST" = "" ]; then
-  echo -e "$SF_PROJECT_TEST not set, please setup first"
+if [ "$re_sync" = "" ]; then
+  echo -e "re_sync is not set, please setup first"
   exit 40
 fi
 if [ "$SF_PASS" = "" ]; then
-  echo -e "$SF_PASS not set, please setup first"
+  echo -e "SF_PASS not set, please setup first"
   exit 40
 fi
 
 if ! [ -x "$(command -v gdrive)" ]; then
-  echo -e "Error: gdrive is not installed." >&2
+  echo -e "Error: gdrive is not installed."
   exit 40
 fi
 
@@ -249,13 +252,13 @@ source build/envsetup.sh
 if [ "$make_clean" = "yes" ]; then
 	make clobber
 	wait
-	echo -e ${cya}"OUT dir from your repo deleted"${txtrst};
+	echo -e ${cya}"OUT dir from your repo was deleted"${txtrst};
 fi
 
 if [ "$make_clean" = "installclean" ]; then
 	make installclean && make clean && make deviceclean
 	wait
-	echo -e ${cya}"Images deleted from OUT dir"${txtrst};
+	echo -e ${cya}"Images was deleted from OUT dir"${txtrst};
 fi
 
 lunch "$lunch_command"_"$device_codename"-"$build_type"
@@ -273,7 +276,6 @@ sendLog "$BUILDLOG"
 # Detecting file
 FILENAME=$(cat $CDIR/out/var-file_name)
 if [ "$target_command" = "nad" ]; then
-    #FILEPATH=$(find "$OUT" -iname "${ROM_NAME}*${DEVICE}*zip")
     FILEPATH="$OUT/$FILENAME.zip"
 elif [ "$target_command" = "bootimage" ]; then
     FILEPATH=$(find "$OUT" -iname "boot.img" 2>/dev/null)
