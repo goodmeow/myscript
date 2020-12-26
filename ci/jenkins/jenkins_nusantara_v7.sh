@@ -248,20 +248,18 @@ export KBUILD_BUILD_USER=jenkins-$ROM_NAME-project
 export KBUILD_BUILD_HOST=ci
 export JAVA_TOOL_OPTIONS=$javamemory #-Xmx2g
 source build/envsetup.sh
-
+lunch "$lunch_command"_"$device_codename"-"$build_type"
 if [ "$make_clean" = "yes" ]; then
-	make clobber
+	make clean
 	wait
 	echo -e ${cya}"OUT dir from your repo was deleted"${txtrst};
 fi
 
 if [ "$make_clean" = "installclean" ]; then
-	make installclean && make clean && make deviceclean
+	make installclean && make deviceclean
 	wait
 	echo -e ${cya}"Images was deleted from OUT dir"${txtrst};
 fi
-
-lunch "$lunch_command"_"$device_codename"-"$build_type"
 startTele
 mkfifo reading
 tee "${BUILDLOG}" < reading &
