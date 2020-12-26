@@ -116,6 +116,10 @@ if [ "$ROMBUILD" = "microg" ]; then
     export USE_GAPPS=false
 fi
 
+if [ "$ROMBUILD" = "nogapps" ]; then
+    export USE_MICROG=false
+    export USE_GAPPS=false
+fi
 #####################################
 #               Main                #
 #####################################
