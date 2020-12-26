@@ -54,7 +54,8 @@
 # jobs is not set (nproc)
 # upload_to_sf is not set (yes/gdrive)
 path_ccache=$PWD/.ccache
-javamemory=-Xmx16g 
+javamemory=-Xmx16g
+#elinuxneverallow is not set (bools)
 size_ccache=150G
 
 CDIR=$PWD
@@ -251,6 +252,7 @@ BUILDLOG="$CDIR/out/${ROM_NAME}-${DEVICE}-${DATELOG}.log"
 export KBUILD_BUILD_USER=jenkins-$ROM_NAME-project
 export KBUILD_BUILD_HOST=ci
 export JAVA_TOOL_OPTIONS=$javamemory #-Xmx2g
+export SELINUX_IGNORE_NEVERALLOW=$selinuxneverallow
 source build/envsetup.sh
 lunch "$lunch_command"_"$device_codename"-"$build_type"
 if [ "$make_clean" = "yes" ]; then
