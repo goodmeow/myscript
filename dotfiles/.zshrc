@@ -45,5 +45,5 @@ export GPG_TTY=`tty`
 export EDITOR=nano
 export USE_CCACHE=1
 export CCACHE_EXEC=$(command -v ccache)
-ccache -M 25G
+ccache -M 100G
 
