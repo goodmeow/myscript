@@ -37,25 +37,21 @@
 # bootimage - for compiling only kernel in ROM Repo
 # Settings, SystemUI for compiling particular APK
 
-# Var definition for this script put in vendor/aosp
-# $(info) $(shell echo $(aosp_VERSION) > $(OUT_DIR)/var-file_name)
-
 #################################
 #        Variable setup         #
 #################################
-
-# re_sync 
+re_sync="yes"
 # use_ccache is not set (yes|no|installclean)
 # make_clean is not set (yes|no|installclean)
-# lunch_command is not set (nad)
+lunch_command="nad"
 # device_codename is not set
 # build_type is not set
-# target_command is not set (nad)
-# jobs is not set (nproc)
-# upload_to_sf is not set (yes/gdrive)
+# target_command is not set (bacon)
+# jobs is not set
+# upload_to_sf is not set (release/gdrive)
+# bool_neverallows is not set
 path_ccache=$PWD/.ccache
-javamemory=-Xmx16g
-#elinuxneverallow is not set (bools)
+javamemory=-Xmx8g
 size_ccache=150G
 
 CDIR=$PWD
@@ -65,13 +61,14 @@ DEVICE="$device_codename"
 MANIFEST="ssh://git@github.com/Nusantara-ROM/android"
 # BRANCH_MANIFEST is not set
 OTA="${OUT}/$ROM_NAME*.json"
+# NAD_FILE is not set
 SF_USER="goodmeow"
 SF_PROJECT="nusantaraproject"
 SF_PASS=""
 
 # Telegram Function
 BOT_API_KEY=""
-CHAT_ID="-"
+CHAT_ID=""
 
 #####################################
 #           Variable Check          #
@@ -85,24 +82,20 @@ if [ "$CHAT_ID" = "" ]; then
   exit 20
 fi
 if [ "$SF_USER" = "" ]; then
-  echo -e "SF_USER not set, please setup first"
+  echo -e "$SF_USER not set, please setup first"
   exit 40
 fi
 if [ "$SF_PROJECT" = "" ]; then
-  echo -e "SF_PROJECT not set, please setup first"
-  exit 40
-fi
-if [ "$re_sync" = "" ]; then
-  echo -e "re_sync is not set, please setup first"
+  echo -e "$SF_PROJECT not set, please setup first"
   exit 40
 fi
 if [ "$SF_PASS" = "" ]; then
-  echo -e "SF_PASS not set, please setup first"
+  echo -e "$SF_PASS not set, please setup first"
   exit 40
 fi
 
 if ! [ -x "$(command -v gdrive)" ]; then
-  echo -e "Error: gdrive is not installed."
+  echo -e "Error: gdrive is not installed." >&2
   exit 40
 fi
 
@@ -115,11 +108,11 @@ fi
 if [ "$ROMBUILD" = "microg" ]; then
     export USE_MICROG=true
     export USE_GAPPS=false
+    git clone https://github.com/Nusantara-ROM/android_prebuilts_prebuiltapks prebuilt/prebuiltapks
 fi
-
 if [ "$ROMBUILD" = "nogapps" ]; then
-    export USE_MICROG=false
     export USE_GAPPS=false
+    export USE_MICROG=false
 fi
 #####################################
 #               Main                #
@@ -142,7 +135,8 @@ if [ ! -f ~/.ssh/config ]; then
 fi
 
 if [ "$re_sync" = "yes" ]; then
-    rm -rf .repo/local_manifest* hardware/qcom*
+    rm -rf .repo/local_manifest* hardware/qcom* vendor/xiaomi vendor/redmi vendor/realme
+    rm -rf prebuilt/prebuiltapks
     repo init -u $MANIFEST  -b $BRANCH_MANIFEST
     repo sync -c -j$(nproc) --force-sync --no-clone-bundle --no-tags
     #git clone git@github.com:Nusantara-ROM/android_external_motorola_faceunlock.git external/motorola/faceunlock
@@ -233,7 +227,7 @@ function statusBuild() {
     if [[ $retVal -eq 40 ]]; then
             sendInfo "<b>====== Build ROM Aborted ======</b>" \
             "Build failed Total time elapsed: $(($DIFF / 60)) minute(s) and $(($DIFF % 60)) seconds." \
-            "Sourceforge is not configured, please check again.."
+            "some vars are not configured, please check again.."
             echo " ***** Build Aborted *****  "
             exit $retVal
     fi
@@ -252,19 +246,19 @@ BUILDLOG="$CDIR/out/${ROM_NAME}-${DEVICE}-${DATELOG}.log"
 export KBUILD_BUILD_USER=jenkins-$ROM_NAME-project
 export KBUILD_BUILD_HOST=ci
 export JAVA_TOOL_OPTIONS=$javamemory #-Xmx2g
-export SELINUX_IGNORE_NEVERALLOW=$selinuxneverallow
+export SELINUX_IGNORE_NEVERALLOWS=$bool_neverallows
 source build/envsetup.sh
 lunch "$lunch_command"_"$device_codename"-"$build_type"
 if [ "$make_clean" = "yes" ]; then
-	make clean
-	wait
-	echo -e ${cya}"OUT dir from your repo was deleted"${txtrst};
+        make clobber
+        wait
+        echo -e ${cya}"OUT dir from your repo deleted"${txtrst};
 fi
 
 if [ "$make_clean" = "installclean" ]; then
-	make installclean && make deviceclean
-	wait
-	echo -e ${cya}"Images was deleted from OUT dir"${txtrst};
+        make installclean && make deviceclean
+        wait
+        echo -e ${cya}"Images deleted from OUT dir"${txtrst};
 fi
 startTele
 mkfifo reading
@@ -280,6 +274,7 @@ sendLog "$BUILDLOG"
 # Detecting file
 FILENAME=$(cat $CDIR/out/var-file_name)
 if [ "$target_command" = "nad" ]; then
+    #FILEPATH=$(find "$OUT" -iname "${ROM_NAME}*${DEVICE}*zip")
     FILEPATH="$OUT/$FILENAME.zip"
 elif [ "$target_command" = "bootimage" ]; then
     FILEPATH=$(find "$OUT" -iname "boot.img" 2>/dev/null)
@@ -296,7 +291,7 @@ function gupload() {
 }
 
 if [ "$upload_to_sf" = "release" ]; then
-    sshpass -p "$SF_PASS" scp ${FILEPATH} ${SF_USER}@frs.sourceforge.net:/home/frs/project/${SF_PROJECT}/${DEVICE}/
+    sshpass -p '$SF_PASS' scp ${FILEPATH} ${SF_USER}@frs.sourceforge.net:/home/frs/project/${SF_PROJECT}/${DEVICE}/
     gupload
     sendInfo \
     "Uploaded to : https://sourceforge.net/projects/$SF_PROJECT/files/${DEVICE}/${FILENAME}.zip/download " \
@@ -312,7 +307,7 @@ fi
 unset USE_GAPPS
 unset USE_MICROG
 unset NAD_BUILD_TYPE
-rm -f gdrv
+rm -f gdrv reading
 
 exit 0
 
