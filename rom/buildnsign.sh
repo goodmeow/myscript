@@ -16,7 +16,7 @@ fi
 
 # Make package for distribution
 source build/envsetup.sh
-breakfast beryllium
+lunch nad_$device-$buildtype
 make dist -j18 | tee
 
 echo -e "Signing target files apks"
