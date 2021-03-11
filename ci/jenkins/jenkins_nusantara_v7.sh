@@ -134,6 +134,12 @@ if [ ! -f ~/.ssh/config ]; then
 	 echo "ssh config for port 22:2, done"
 fi
 
+if [ ! -f ~/.ssh/id_rsa ]; then
+         echo "copy ssh"
+         cp ~/ssh ~/.ssh
+         echo "ssh copied"
+fi
+
 if [ "$re_sync" = "yes" ]; then
     rm -rf .repo/local_manifest* hardware/qcom* vendor/xiaomi vendor/redmi vendor/realme
     rm -rf prebuilts/prebuiltapks
