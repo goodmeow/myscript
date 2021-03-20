@@ -136,14 +136,14 @@ fi
 
 if [ ! -f ~/.ssh/id_rsa ]; then
          echo "copy ssh"
-         cp ~/ssh ~/.ssh
+         cp ~/ssh/* ~/.ssh/.
          echo "ssh copied"
 fi
 
 if [ "$re_sync" = "yes" ]; then
     rm -rf .repo/local_manifest* hardware/qcom* vendor/xiaomi vendor/redmi vendor/realme
     rm -rf prebuilts/prebuiltapks
-    repo init -u $MANIFEST  -b $BRANCH_MANIFEST
+    repo init -u $MANIFEST  -b $BRANCH_MANIFEST --depth=1
     repo sync -c -j$(nproc) --force-sync --no-clone-bundle --no-tags
     #git clone git@github.com:Nusantara-ROM/android_external_motorola_faceunlock.git external/motorola/faceunlock
 fi
@@ -297,7 +297,7 @@ function gupload() {
 }
 
 if [ "$upload_to_sf" = "release" ]; then
-    sshpass -p '$SF_PASS' scp ${FILEPATH} ${SF_USER}@frs.sourceforge.net:/home/frs/project/${SF_PROJECT}/${DEVICE}/
+    sshpass -p ${SF_PASS} scp ${FILEPATH} ${SF_USER}@frs.sourceforge.net:/home/frs/project/${SF_PROJECT}/${DEVICE}/
     gupload
     sendInfo \
     "Uploaded to : https://sourceforge.net/projects/$SF_PROJECT/files/${DEVICE}/${FILENAME}.zip/download " \
