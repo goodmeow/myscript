@@ -185,7 +185,7 @@ function sendTele() {
 function timeStart() {
 	DATELOG=$(date "+%H%M-%d%m%Y")
 	BUILD_START=$(date +"%s")
-	DATE=`date`
+	DATE=`$(date)`
 }
 
 function timeEnd() {
