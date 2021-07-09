@@ -15,7 +15,7 @@ OURDIR=/mnt/build
 # Format and setup 
 echo "***** Prepare Persistant Disk path:$OURDIR *****  "
 sudo mkfs.ext4 -m 0 -E lazy_itable_init=0,lazy_journal_init=0,discard /dev/sdb
-sudo mkdir -p /mnt/build
+sudo mkdir -p $OURDIR
 sudo mount -o discard,defaults /dev/sdb $OURDIR
 sudo chmod a+w $OURDIR
 sudo cp /etc/fstab /etc/fstab.backup
@@ -32,7 +32,7 @@ echo export USE_CCACHE=1 | tee -a ~/.bashrc
 echo export CCACHE_EXEC=$(command -v ccache) | tee -a ~/.bashrc
 echo export CCACHE_BASEDIR=$OURDIR/.ccache | tee -a ~/.bashrc
 echo export CCACHE_DIR=$OURDIR/.ccache | tee -a ~/.bashrc
-echo ccache -M 50G | tee -a ~/.bashrc
+echo ccache -M 10G | tee -a ~/.bashrc
 source ~/.bashrc && echo $PATH
 sleep 1
 
