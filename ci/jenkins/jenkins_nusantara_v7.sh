@@ -138,14 +138,13 @@ fi
 if [ "$re_sync" = "yes" ]; then
     rm -rf .repo/local_manifest* hardware/qcom* vendor/xiaomi vendor/redmi vendor/realme
     rm -rf prebuilts/prebuiltapks device/* kernel/*
+    repo init -u $MANIFEST  -b $BRANCH_MANIFEST --depth=1
+    repo sync -c -j$(nproc) --force-sync --no-clone-bundle --no-tags
     if [ "$ROMBUILD" = "microg" ]; then
     export USE_MICROG=true
     export USE_GAPPS=false
-    git clone https://github.com/Nusantara-ROM/android_prebuilts_prebuiltapks prebuilts/prebuiltapks
+    git clone https://github.com/Nusantara-ROM/android_prebuilts_prebuiltapks --depth=1 prebuilts/prebuiltapks
     fi
-    repo init -u $MANIFEST  -b $BRANCH_MANIFEST --depth=1
-    repo sync -c -j$(nproc) --force-sync --no-clone-bundle --no-tags
-    #git clone git@github.com:Nusantara-ROM/android_external_motorola_faceunlock.git external/motorola/faceunlock
 fi
 
 if [ "$use_ccache" = "yes" ]; then
