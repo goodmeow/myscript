@@ -137,7 +137,7 @@ fi
 
 if [ "$re_sync" = "yes" ]; then
     rm -rf .repo/local_manifest* hardware/qcom* vendor/xiaomi vendor/redmi vendor/realme
-    rm -rf prebuilts/prebuiltapks
+    rm -rf prebuilts/prebuiltapks device/* kernel/*
     if [ "$ROMBUILD" = "microg" ]; then
     export USE_MICROG=true
     export USE_GAPPS=false
@@ -254,6 +254,7 @@ export KBUILD_BUILD_HOST=ci
 export JAVA_TOOL_OPTIONS=$javamemory #-Xmx2g
 export SELINUX_IGNORE_NEVERALLOWS=$bool_neverallows
 source build/envsetup.sh
+export NAD_BUILD_TYPE=OFFICIAL
 lunch "$lunch_command"_"$device_codename"-"$build_type"
 if [ "$make_clean" = "yes" ]; then
         make clobber
@@ -283,7 +284,9 @@ if [ "$target_command" = "nad" ]; then
     #FILEPATH=$(find "$OUT" -iname "${ROM_NAME}*${DEVICE}*zip")
     FILEPATH="$OUT/$FILENAME.zip"
 elif [ "$target_command" = "bootimage" ]; then
-    FILEPATH=$(find "$OUT" -iname "boot.img" 2>/dev/null)
+    #FILEPATH=$(find "$OUT" -iname "boot.img" 2>/dev/null)
+    FILEPATH="$OUT/boot.img"
+    sendTele "$FILEPATH"
 else
     FILEPATH=$(find "$OUT" -iname "$target_command.apk" 2>/dev/null)
     sendTele "$FILEPATH"
@@ -291,21 +294,19 @@ else
 fi
 
 function gupload() {
-     FILENAME=$(cat $CDIR/out/var-file_name)
-     FILEPATH="$OUT/$FILENAME.zip"
-     gdrive upload -p 1x8muGhGJh-2dQzihrrHPCSNrkcYEk_YG ${FILEPATH} | tee gdrv
+     gdrive upload -p 1x8muGhGJh-2dQzihrrHPCSNrkcYEk_YG $1 | tee gdrv
 }
 
 if [ "$upload_to_sf" = "release" ]; then
-    sshpass -p ${SF_PASS} scp ${FILEPATH} ${SF_USER}@frs.sourceforge.net:/home/frs/project/${SF_PROJECT}/${DEVICE}/
-    gupload
+    sshpass -p '${SF_PASS}' scp ${FILEPATH} ${SF_USER}@frs.sourceforge.net:/home/frs/project/${SF_PROJECT}/${DEVICE}/
+    gupload ${FILEPATH}
     sendInfo \
     "Uploaded to : https://sourceforge.net/projects/$SF_PROJECT/files/${DEVICE}/${FILENAME}.zip/download " \
     "MirrorLink  : https://drive.google.com/open?id=$(grep "Uploaded" gdrv | awk '{print $2}')"
 fi
 
 if [ "$upload_to_sf" = "gdrive" ]; then
-    gupload
+    gupload ${FILEPATH}
     sendInfo \
     "MirrorLink  : https://drive.google.com/open?id=$(grep "Uploaded" gdrv | awk '{print $2}')"
 fi
