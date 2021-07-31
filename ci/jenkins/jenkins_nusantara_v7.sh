@@ -293,7 +293,7 @@ else
 fi
 
 function gupload() {
-     gdrive upload -p 1x8muGhGJh-2dQzihrrHPCSNrkcYEk_YG $1 | tee gdrv
+     gdrive upload -p 1x8muGhGJh-2dQzihrrHPCSNrkcYEk_YG $1 | tee gdrv &> /dev/null
 }
 
 if [ "$upload_to_sf" = "release" ]; then
