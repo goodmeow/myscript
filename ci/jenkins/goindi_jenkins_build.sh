@@ -40,24 +40,23 @@ BLINK="https://ci.goindi.org/job/$JOB_NAME/$BUILD_ID/console"
 
 read -r -d '' $1 <<EOT
 <b>Build Started</b>
-${lunch} for  ${device_codename}
+${lunch_command} for  ${device_codename}
 <b>Console log:-</b> <a href="${BLINK}">here</a>
 Good Luck ! Hope it Boots ! Happy Building !
-Visit goindi.org  for more
+Visit goindi.org for more
 EOT
 tg_send $1
 
 # Time to build
-if [ -d ${ccache_location} ] then
-        echo "Ccache folder  exists."
-        else
-        sudo chmod -R 777 ${ccache_location}
-        echo "Made Ccache Folder "
-fi
-
 export CCACHE_EXEC=$(which ccache)
 export USE_CCACHE=1
 export CCACHE_DIR=${folder}/.ccache
+if [ -d ${CCACHE_DIR} ]; then
+        echo "Ccache folder  exists."
+        else
+        sudo chmod -R 777 ${CCACHE_DIR}
+        echo "modifying ccache dir permission"
+fi
 ccache -M 75G
 
 source build/envsetup.sh
@@ -99,14 +98,14 @@ if [ -f $ROM ]; then
     LINK="https://download.goindi.org/${user}/${device_codename}/${filename}"
     size="$(du -h ${ROM}|awk '{print $1}')"
     mdsum="$(md5sum ${zip}|awk '{print $1}')"
-    read -r -d '' priv <<EOT
+    read -r -d '' $1 <<EOT
     Yay it's finished !
-    ${lunch} for  ${device_codename}
+    ${lunch_command} for  ${device_codename}
     <b>Download:-</b> <a href="${LINK}">here</a>
     <b>Size:-</b> <pre> ${size}</pre>
     <b>Md5:-</b> <pre> ${mdsum}</pre>
 EOT
-tg_send $1
+    tg_send $1
     else
     # Error notification
     read -r -d '' $1 <<EOT
