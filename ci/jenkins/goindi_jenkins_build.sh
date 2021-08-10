@@ -29,8 +29,8 @@ priv_to_me="/home/dump/configs/priv.conf"
 newpeeps="/home/dump/configs/"${user}.conf
 
 tg_send () {
-    sudo telegram-send --format html "$1" --config ${priv_to_me} --disable-web-page-preview
-    sudo telegram-send --format html "$1" --config ${newpeeps} --disable-web-page-preview
+    sudo telegram-send --format html "$priv" --config ${priv_to_me} --disable-web-page-preview && \
+    sudo telegram-send --format html "$priv" --config ${newpeeps} --disable-web-page-preview
 }
 
 # Go to build directory
@@ -38,14 +38,14 @@ cd "$folder"
 echo -e "\rBuild starting thank you for waiting"
 BLINK="https://ci.goindi.org/job/$JOB_NAME/$BUILD_ID/console"
 
-read -r -d '' $1 <<EOT
+read -r -d '' priv <<EOT
 <b>Build Started</b>
 ${lunch_command} for  ${device_codename}
 <b>Console log:-</b> <a href="${BLINK}">here</a>
 Good Luck ! Hope it Boots ! Happy Building !
 Visit goindi.org for more
 EOT
-tg_send $1
+tg_send $priv
 
 # Time to build
 export CCACHE_EXEC=$(which ccache)
@@ -60,6 +60,7 @@ fi
 ccache -M 75G
 
 source build/envsetup.sh
+lunch ${lunch_command}_${device_codename}-${build_type}
 
 # Gapps export to env
 if [ "$with_gapps" = "yes" ]; then
@@ -98,19 +99,19 @@ if [ -f $ROM ]; then
     LINK="https://download.goindi.org/${user}/${device_codename}/${filename}"
     size="$(du -h ${ROM}|awk '{print $1}')"
     mdsum="$(md5sum ${zip}|awk '{print $1}')"
-    read -r -d '' $1 <<EOT
+    read -r -d '' priv <<EOT
     Yay it's finished !
     ${lunch_command} for  ${device_codename}
     <b>Download:-</b> <a href="${LINK}">here</a>
     <b>Size:-</b> <pre> ${size}</pre>
     <b>Md5:-</b> <pre> ${mdsum}</pre>
 EOT
-    tg_send $1
+    tg_send $priv
     else
     # Error notification
-    read -r -d '' $1 <<EOT
+    read -r -d '' priv <<EOT
     <b>Error Generated</b>
     <b>Check error:-</b> <a href="https://ci.goindi.org/job/$JOB_NAME/$BUILD_ID/console">here</a>
 EOT
-tg_send $1
+tg_send $priv
 fi
