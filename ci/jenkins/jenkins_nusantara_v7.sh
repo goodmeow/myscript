@@ -137,13 +137,12 @@ fi
 
 if [ "$re_sync" = "yes" ]; then
     rm -rf .repo/local_manifest* hardware/qcom* vendor/xiaomi vendor/redmi vendor/realme
-    rm -rf prebuilts/prebuiltapks device/* kernel/*
+    rm -rf device/* kernel/*
     repo init -u $MANIFEST  -b $BRANCH_MANIFEST --depth=1
-    repo sync -c -j$(nproc) --force-sync --no-clone-bundle --no-tags
+    repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags
     if [ "$ROMBUILD" = "microg" ]; then
     export USE_MICROG=true
     export USE_GAPPS=false
-    git clone https://github.com/Nusantara-ROM/android_prebuilts_prebuiltapks --depth=1 prebuilts/prebuiltapks
     fi
 fi
 
@@ -291,23 +290,42 @@ else
     sendTele "$FILEPATH"
     exit 0
 fi
+FINALFILE="$(basename $FILEPATH)"
+SIZE="$(du -h ${FILEPATH}|awk '{print $1}')"
+MD5="$(md5sum ${FILEPATH}|awk '{print $1}')"
 
 function gupload() {
      gdrive upload -p 1x8muGhGJh-2dQzihrrHPCSNrkcYEk_YG $1 | tee gdrv &> /dev/null
 }
 
 if [ "$upload_to_sf" = "release" ]; then
-    sshpass -p '${SF_PASS}' scp ${FILEPATH} ${SF_USER}@frs.sourceforge.net:/home/frs/project/${SF_PROJECT}/${DEVICE}/
+    sshpass -p '' scp ${FILEPATH} ${SF_USER}@frs.sourceforge.net:/home/frs/project/${SF_PROJECT}/${DEVICE}/
     gupload ${FILEPATH}
     sendInfo \
+    "File Name: ${FINALFILE}" \
+    "Size: ${SIZE}" \
+    "md5sum: ${MD5}" \
     "Uploaded to : https://sourceforge.net/projects/$SF_PROJECT/files/${DEVICE}/${FILENAME}.zip/download " \
     "MirrorLink  : https://drive.google.com/open?id=$(grep "Uploaded" gdrv | awk '{print $2}')"
 fi
 
 if [ "$upload_to_sf" = "gdrive" ]; then
     gupload ${FILEPATH}
-    sendInfo \
-    "MirrorLink  : https://drive.google.com/open?id=$(grep "Uploaded" gdrv | awk '{print $2}')"
+    if [ "$target_command" = "bootimage" ]; then
+        sendInfo \
+        "File Name: ${FINALFILE} of ${FILENAME}" \
+    	"MirrorLink  : https://drive.google.com/open?id=$(grep "Uploaded" gdrv | awk '{print $2}')"
+    elif [ "$target_command" = "nad" ]; then
+	  sendInfo \
+	  "File Name: ${FINALFILE}" \
+          "Size: ${SIZE}" \
+          "md5sum: ${MD5}" \
+	  "MirrorLink  : https://drive.google.com/open?id=$(grep "Uploaded" gdrv | awk '{print $2}')"
+    else
+	  sendInfo \
+          "File Name: ${FILEPATH} of of ${FILENAME}" \
+          "MirrorLink  : https://drive.google.com/open?id=$(grep "Uploaded" gdrv | awk '{print $2}')"
+    fi
 fi
 
 unset USE_GAPPS
