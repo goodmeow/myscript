@@ -302,11 +302,15 @@ if [ "$upload_to_sf" = "release" ]; then
     sshpass -p '' scp ${FILEPATH} ${SF_USER}@frs.sourceforge.net:/home/frs/project/${SF_PROJECT}/${DEVICE}/
     gupload ${FILEPATH}
     sendInfo \
-    "File Name: ${FINALFILE}" \
-    "Size: ${SIZE}" \
-    "md5sum: ${MD5}" \
-    "Uploaded to : https://sourceforge.net/projects/$SF_PROJECT/files/${DEVICE}/${FILENAME}.zip/download " \
-    "MirrorLink  : https://drive.google.com/open?id=$(grep "Uploaded" gdrv | awk '{print $2}')"
+    "File Name:"
+    "<b>${FINALFILE}</b>" \
+    "Size:"\
+    "${SIZE}" \
+    "md5sum:"\
+    "${MD5}" \
+    ""\
+    "Sourceforge: https://sourceforge.net/projects/$SF_PROJECT/files/${DEVICE}/${FILENAME}.zip/download " \
+    "Mirror: https://drive.google.com/open?id=$(grep "Uploaded" gdrv | awk '{print $2}')"
 fi
 
 if [ "$upload_to_sf" = "gdrive" ]; then
@@ -314,13 +318,13 @@ if [ "$upload_to_sf" = "gdrive" ]; then
     if [ "$target_command" = "bootimage" ]; then
         sendInfo \
         "File Name: ${FINALFILE} of ${FILENAME}" \
-    	"MirrorLink  : https://drive.google.com/open?id=$(grep "Uploaded" gdrv | awk '{print $2}')"
+    	  "MirrorLink  : https://drive.google.com/open?id=$(grep "Uploaded" gdrv | awk '{print $2}')"
     elif [ "$target_command" = "nad" ]; then
-	  sendInfo \
-	  "File Name: ${FINALFILE}" \
+          sendInfo \
+          "File Name: <b>${FINALFILE}</b>" \
           "Size: ${SIZE}" \
           "md5sum: ${MD5}" \
-	  "MirrorLink  : https://drive.google.com/open?id=$(grep "Uploaded" gdrv | awk '{print $2}')"
+          "Mirror: https://drive.google.com/open?id=$(grep "Uploaded" gdrv | awk '{print $2}')"
     else
 	  sendInfo \
           "File Name: ${FILEPATH} of of ${FILENAME}" \
