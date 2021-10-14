@@ -65,6 +65,7 @@ OTA="${OUT}/$ROM_NAME*.json"
 SF_USER="goodmeow"
 SF_PROJECT="nusantaraproject"
 SF_PASS=""
+GDRIVE_FOLDER_ID=""
 
 # Telegram Function
 BOT_API_KEY=""
@@ -295,14 +296,14 @@ SIZE="$(du -h ${FILEPATH}|awk '{print $1}')"
 MD5="$(md5sum ${FILEPATH}|awk '{print $1}')"
 
 function gupload() {
-     gdrive upload -p 1x8muGhGJh-2dQzihrrHPCSNrkcYEk_YG $1 | tee gdrv &> /dev/null
+     gdrive upload -p $GDRIVE_FOLDER_ID $1 | tee gdrv &> /dev/null
 }
 
 if [ "$upload_to_sf" = "release" ]; then
     sshpass -p '' scp ${FILEPATH} ${SF_USER}@frs.sourceforge.net:/home/frs/project/${SF_PROJECT}/${DEVICE}/
     gupload ${FILEPATH}
     sendInfo \
-    "File Name:"
+    "File Name:" \
     "<b>${FINALFILE}</b>" \
     "Size:"\
     "${SIZE}" \
