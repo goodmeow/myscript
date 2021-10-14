@@ -14,10 +14,11 @@ echo "***** Enviroment setup.. *****"
 sudo apt-get update
 sudo apt install git ccache nano sshpass neofetch zsh -y
 sudo /usr/sbin/update-ccache-symlinks
+sudo mkdir /mnt/ccache
 echo export PATH="/usr/lib/ccache:$PATH" | tee -a ~/.bashrc
 echo export USE_CCACHE=1 | tee -a ~/.bashrc
 echo export CCACHE_EXEC=$(command -v ccache) | tee -a ~/.bashrc
-echo ccache -M 50G | tee -a ~/.bashrc
+#echo ccache -M 50G | tee -a ~/.bashrc
 source ~/.bashrc && echo $PATH
 sleep 1
 
@@ -46,8 +47,9 @@ if [[ ! -e ~/.ssh/id_rsa ]]; then
     eval "$(ssh-agent -s)" > /dev/null
     ssh-add ~/.ssh/id_rsa 2>/dev/null
     echo -e "[${CLR_BLD_GRN}+${CLR_RST}] ${CLR_BLD_GRN}Github ssh-key succesefully generated${CLR_RST}"
-fi
+    else
     echo -e "[${CLR_BLD_YLW}!${CLR_RST}] ${CLR_BLD_YLW}Github ssh-key already exists, skipping...${CLR_RST}"
+fi
 
 # Add SF to known_hosts
 ssh-keyscan frs.sourceforge.net >> ~/.ssh/known_hosts
@@ -56,6 +58,7 @@ ssh-keyscan frs.sourceforge.net >> ~/.ssh/known_hosts
 echo "***** Android build env script *****"
 git clone https://github.com/akhilnarang/scripts $HOME/scripts
 . $HOME/scripts/setup/android_build_env.sh
+sudo mount --bind /home/$HOME/.ccache /mnt/ccache
 sleep 1
 
 # Install Open JDK, Jenkins and Apache
@@ -64,7 +67,7 @@ wget -qO - https://pkg.jenkins.io/debian-stable/jenkins.io.key | sudo apt-key ad
 sudo sh -c 'echo deb http://pkg.jenkins.io/debian-stable binary/ > /etc/apt/sources.list.d/jenkins.list'
 
 sudo apt-get update
-sudo apt install openjdk-8-jdk jenkins apache2 -y
+sudo apt install openjdk-11-jdk jenkins apache2 -y
 sleep 1
 
 # then start botj apache and jenkins
