@@ -50,9 +50,9 @@ lunch_command="nad"
 # jobs is not set
 # upload_to_sf is not set (release/gdrive)
 # bool_neverallows is not set
-path_ccache=$PWD/.ccache
+path_ccache=/mnt/ccache
 javamemory=-Xmx8g
-size_ccache=150G
+ccache_size=20G
 
 CDIR=$PWD
 OUT="${CDIR}/out/target/product/$device_codename"
@@ -152,7 +152,7 @@ if [ "$use_ccache" = "yes" ]; then
 	export CCACHE_EXEC=$(which ccache)
 	export USE_CCACHE=1
 	export CCACHE_DIR=$path_ccache
-	ccache -M $size_ccache
+	ccache -M $ccache_size
 fi
 
 if [ "$use_ccache" = "clean" ]; then
