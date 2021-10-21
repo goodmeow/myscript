@@ -51,9 +51,9 @@ ssh-keyscan frs.sourceforge.net >> ~/.ssh/known_hosts
 echo "***** Android build env script *****"
 git clone https://github.com/akhilnarang/scripts $HOME/scripts
 . $HOME/scripts/setup/android_build_env.sh
+sudo mkdir /mnt/ccache
 sudo mount --bind /home/$HOME/.ccache /mnt/ccache
 sudo /usr/sbin/update-ccache-symlinks
-sudo mkdir /mnt/ccache
 echo export PATH="/usr/lib/ccache:$PATH" | tee -a ~/.bashrc
 echo export USE_CCACHE=1 | tee -a ~/.bashrc
 echo export CCACHE_EXEC=$(command -v ccache) | tee -a ~/.bashrc
