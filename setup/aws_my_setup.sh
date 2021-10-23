@@ -52,7 +52,7 @@ echo "***** Android build env script *****"
 git clone https://github.com/akhilnarang/scripts $HOME/scripts
 . $HOME/scripts/setup/android_build_env.sh
 sudo mkdir /mnt/ccache
-sudo mount --bind /home/$HOME/.ccache /mnt/ccache
+ccache -s && sudo mount --bind $HOME/.ccache /mnt/ccache
 sudo /usr/sbin/update-ccache-symlinks
 echo export PATH="/usr/lib/ccache:$PATH" | tee -a ~/.bashrc
 echo export USE_CCACHE=1 | tee -a ~/.bashrc
