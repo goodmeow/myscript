@@ -50,15 +50,14 @@ ssh-keyscan frs.sourceforge.net >> ~/.ssh/known_hosts
 # Setup Android Enviroment
 echo "***** Android build env script *****"
 git clone https://github.com/akhilnarang/scripts $HOME/scripts
+echo "Adding GitHub apt key and repository!"
+curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
 . $HOME/scripts/setup/android_build_env.sh
 sudo mkdir /mnt/ccache
-ccache -s && sudo mount --bind $HOME/.ccache /mnt/ccache
-sudo /usr/sbin/update-ccache-symlinks
 echo export PATH="/usr/lib/ccache:$PATH" | tee -a ~/.bashrc
 echo export USE_CCACHE=1 | tee -a ~/.bashrc
 echo export CCACHE_EXEC=$(command -v ccache) | tee -a ~/.bashrc
-#echo ccache -M 50G | tee -a ~/.bashrc
-source ~/.bashrc && echo $PATH
 sleep 1
 
 # End timer
