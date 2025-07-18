@@ -3,39 +3,43 @@
 # SPDX-License-Identifier: GPL-3.0-only
 #
 
-# Init timer
-START=$(date +"%s")
+set -euo pipefail
 
-# Indonesian timezone (GMT+7)
-TZ=Asia/Jakarta
-sudo ln -snf /usr/share/zoneinfo/$TZ /etc/localtime
+# Timer mulai
+START=$(date +%s)
+
+# Handle error
+trap 'echo "Terjadi kesalahan pada baris $LINENO"; exit 1' ERR
+
+# Timezone Indonesia
+TZ="Asia/Jakarta"
+sudo ln -snf "/usr/share/zoneinfo/$TZ" /etc/localtime
 
 echo "***** Setting up Environment *****"
 sudo apt-get update
-sudo apt install git ccache nano sshpass neofetch -y shellcheck
+sudo apt-get install -y git ccache nano sshpass neofetch shellcheck
 
-# Run ShellCheck to analyze the script
+# Jalankan ShellCheck pada script ini
 shellcheck "$0"
 
 echo "***** Setting up Git *****"
-# For all those distro hoppers, let's set up your Git credentials
-GIT_USERNAME="$(git config --get user.name)"
-GIT_EMAIL="$(git config --get user.email)"
+GIT_USERNAME="$(git config --get user.name || true)"
+GIT_EMAIL="$(git config --get user.email || true)"
 
+# Setup Git user.name
 if [[ -z "${GIT_USERNAME}" ]]; then
-    read -p "Enter your name: " NAME
-    # Validate name input using regular expression
-    if [[ ! "$NAME" =~ ^[[:alnum:]]+$ ]]; then
-        echo "Invalid name format. Please enter only alphanumeric characters."
+    read -rp "Enter your name: " NAME
+    if [[ ! "$NAME" =~ ^[a-zA-Z0-9\.\'\ -]+$ ]]; then
+        echo "Invalid name format. Use letters, numbers, dots, or spaces."
         exit 1
     fi
     git config --global user.name "${NAME}"
 fi
 
-if [[ -z ${GIT_EMAIL}" ]]; then
-    read -p "Enter your email: " EMAIL
-    # Validate email input using regular expression
-    if [[ ! "$EMAIL" =~ ^[[:alnum:]\._-]+\@[[:alnum:]\._-]+\.[[:alnum:]]+$ ]]; then
+# Setup Git user.email
+if [[ -z "${GIT_EMAIL}" ]]; then
+    read -rp "Enter your email: " EMAIL
+    if [[ ! "$EMAIL" =~ ^[[:alnum:]\._%+-]+@[[:alnum:]\.-]+\.[a-zA-Z]{2,}$ ]]; then
         echo "Invalid email format."
         exit 1
     fi
@@ -43,44 +47,52 @@ if [[ -z ${GIT_EMAIL}" ]]; then
 fi
 
 git config --global credential.helper "cache --timeout=7200"
-echo "Git credentials setup successfully"
+echo "Git credentials setup successfully."
 
-echo "***** Generating SSH-KEY for git using email conf *****"
-# Generating ssh-key for git ssh creds using git email conf
-if [[ ! -e ~/.ssh/id_rsa ]]; then
-    # Use a secure temporary directory for the SSH key
-    tmp_dir=$(mktemp -d "/tmp/ssh-key-XXXXXX")
-    ssh-keygen -t rsa -b 4096 -C "$(git config user.email)" -N "" -q -f "$tmp_dir/id_rsa"
+echo "***** Generating SSH-KEY for Git *****"
+SSH_KEY="$HOME/.ssh/id_rsa"
+if [[ ! -f "$SSH_KEY" ]]; then
+    mkdir -p ~/.ssh
+    ssh-keygen -t rsa -b 4096 -C "$(git config user.email)" -N "" -q -f "$SSH_KEY"
     eval "$(ssh-agent -s)" > /dev/null
-    ssh-add "$tmp_dir/id_rsa" 2>/dev/null
-    mv "$tmp_dir/id_rsa" ~/.ssh/id_rsa
-    rm -rf "$tmp_dir"
-    echo "Github ssh-key successfully generated"
+    ssh-add "$SSH_KEY" 2>/dev/null
+    echo "GitHub SSH key generated."
 else
-    echo "Github ssh-key already exists, skipping..."
+    echo "SSH key already exists. Skipping generation."
 fi
 
-# Add SF to known_hosts
-ssh-keyscan frs.sourceforge.net >> ~/.ssh/known_hosts
+# Tambahkan SourceForge ke known_hosts
+mkdir -p ~/.ssh
+ssh-keyscan frs.sourceforge.net >> ~/.ssh/known_hosts 2>/dev/null
 
 echo "***** Setting up Android Build Environment *****"
-git clone https://github.com/akhilnarang/scripts $HOME/scripts
-echo "Adding GitHub apt key and repository!"
-curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-. $HOME/scripts/setup/android_build_env.sh
-sudo mkdir /mnt/ccache
-echo export PATH="/usr/lib/ccache:$PATH" >> ~/.bashrc
-echo export USE_CCACHE=1 >> ~/.bashrc
-echo export CCACHE_EXEC=$(command -v ccache) >> ~/.bashrc
+if [[ ! -d "$HOME/scripts" ]]; then
+    git clone https://github.com/akhilnarang/scripts "$HOME/scripts"
+fi
 
-# End timer
-END=$(date +"%s")
-DIFF=$(($END - $START))
+echo "Adding GitHub CLI key and repository..."
+curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | \
+    sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
 
-echo "Finished in $(($DIFF / 60)) minute(s) and $(($DIFF % 60)) second(s)."
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] \
+https://cli.github.com/packages stable main" | \
+    sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
 
-# unset all env var
-unset START
-unset END
-unset DIFF
+# Jalankan script environment
+. "$HOME/scripts/setup/android_build_env.sh"
+
+# Setup ccache
+sudo mkdir -p /mnt/ccache
+
+# Tambahkan ke .bashrc jika belum ada
+grep -qxF 'export PATH="/usr/lib/ccache:$PATH"' ~/.bashrc || echo 'export PATH="/usr/lib/ccache:$PATH"' >> ~/.bashrc
+grep -qxF 'export USE_CCACHE=1' ~/.bashrc || echo 'export USE_CCACHE=1' >> ~/.bashrc
+grep -qxF "export CCACHE_EXEC=$(command -v ccache)" ~/.bashrc || echo "export CCACHE_EXEC=$(command -v ccache)" >> ~/.bashrc
+
+# Selesai, tampilkan waktu eksekusi
+END=$(date +%s)
+DIFF=$((END - START))
+echo "Finished in $((DIFF / 60)) minute(s) and $((DIFF % 60)) second(s)."
+
+# Cleanup variabel
+unset START END DIFF GIT_USERNAME GIT_EMAIL NAME EMAIL SSH_KEY TZ
