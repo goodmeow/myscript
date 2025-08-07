@@ -294,12 +294,4 @@ while true; do
     fi
 done
 echo -e "$nc"
-      echo ""
-    fi
-done
-echo -e "$nc"
- ""
-    fi
-done
-echo -e "$nc"
 
